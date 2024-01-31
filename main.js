@@ -3,8 +3,6 @@ import { Stomp } from "@stomp/stompjs";
 document.addEventListener("DOMContentLoaded", function () {
     const createNewsForm = document.getElementById("createNewsForm");
 
-    console.log(createNewsForm)
-    
     createNewsForm.addEventListener("submit", function (event) {
         event.preventDefault(); 
         createNews();
