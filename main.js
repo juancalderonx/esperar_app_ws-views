@@ -1,44 +1,73 @@
 import { Stomp } from "@stomp/stompjs";
 
+let stompClient = null;
+
 document.addEventListener("DOMContentLoaded", function () {
-    const createNewsForm = document.getElementById("createNewsForm");
+  const socket = connectToSocket();
 
-    createNewsForm.addEventListener("submit", function (event) {
-        event.preventDefault(); 
-        createNews();
-    });
-});
+  const sendMessageForm = document.getElementById("messageForm");
 
-export function createNews() {
-    const newsTitle = document.getElementById("title").value;
-    const newsContent = document.getElementById("content").value;
+  sendMessageForm.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-    console.log({ title: newsTitle, content: newsContent });
+    // const createChatDto = {
+    //   senderId: 1,
+    //   recipientId: 2,
+    //   type: "ONE_TO_ONE",
+    // };
 
-    let stompClient = Stomp.over(function () {
-        return new SockJS(`http://localhost:8080/api/v1/ws`);
-    });
+    // createChat(createChatDto, socket); // Create chat
 
-    stompClient.connect({}, () => {
-        console.log('Conectado al servidor de WebSocket');
+    const messageContent = document.getElementById("message").value;
 
-        sendCreateNewsMessage(stompClient, newsTitle, newsContent);
-
-        stompClient.subscribe('/topic/news', (news) => {
-            const notice = JSON.parse(news.body);
-            console.log("Nueva noticia creada:", notice);
-        });
-
-    }, () => {
-        console.log("Fallo al conectarse al servidor WebSocket. Por favor, inténtelo de nuevo más tarde.");
-    });
-}
-
-function sendCreateNewsMessage(stompClient, title, content) {
-    const createNoticeDto = {
-        title: title,
-        content: content
+    const createMessageDto = {
+      chatId: 3,
+      senderId: 1,
+      content: messageContent,
     };
 
-    stompClient.send("/app/createNews", {}, JSON.stringify(createNoticeDto));
-}
+    sendMessage(createMessageDto, socket); // Send message
+  });
+});
+
+export const sendMessage = (createMessageDto, socket) => {
+  console.log("Trying to send a message");
+  socket.send("/app/chat.send-message", {}, JSON.stringify(createMessageDto));
+};
+
+export const createChat = (createChatDto, socket) => {
+  console.log("Trying to create a chat");
+  socket.send("/app/chat.create-chat", {}, JSON.stringify(createChatDto));
+};
+
+export const connectToSocket = () => {
+  stompClient = Stomp.over(function () {
+    return new SockJS(`http://localhost:8080/api/v1/ws/chat`);
+  });
+
+  stompClient.connect({}, onConnected, onError);
+
+  return stompClient;
+};
+
+const onConnected = () => {
+  console.log("Connected to WebSocket");
+
+  const chatRoomIds = getChatRoomIdsForUser();
+  chatRoomIds.forEach((chatRoomId) => {
+    stompClient.subscribe(`/topic/chat.${chatRoomId}`, onMessageReceived);
+  });
+};
+
+export const onError = (error) => {
+  console.error("Error connecting to the server", error);
+};
+
+export const onMessageReceived = (payload) => {
+  console.log("Message received: " + payload);
+};
+
+export const getChatRoomIdsForUser = () => {
+  // Make an API call to get chat room ids for the user
+  return [1, 2, 3];
+};
