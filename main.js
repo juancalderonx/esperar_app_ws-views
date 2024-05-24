@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const messageContent = document.getElementById("message").value;
 
     const createMessageDto = {
-      chatId: 3,
+      chatId: 6,
       senderId: 1,
       content: messageContent,
     };
@@ -54,8 +54,15 @@ const onConnected = () => {
   console.log("Connected to WebSocket");
 
   const chatRoomIds = getChatRoomIdsForUser();
+
+  console.log("Los chat rooms ids son: ", chatRoomIds);
+
   chatRoomIds.forEach((chatRoomId) => {
-    stompClient.subscribe(`/topic/chat.${chatRoomId}`, onMessageReceived);
+    console.log("Vamos a suscribirnos al chat room con id: " + chatRoomId);
+    stompClient.subscribe(
+      `/topic/chat-message.${chatRoomId}`,
+      onMessageReceived
+    );
   });
 };
 
@@ -64,10 +71,15 @@ export const onError = (error) => {
 };
 
 export const onMessageReceived = (payload) => {
-  console.log("Message received: " + payload);
+  console.log("Message received:");
+
+  const messageBody = new TextDecoder().decode(payload.binaryBody);
+  const message = JSON.parse(messageBody);
+
+  console.log("Mensaje decodificado:");
+  console.log(message);
 };
 
 export const getChatRoomIdsForUser = () => {
-  // Make an API call to get chat room ids for the user
-  return [1, 2, 3];
+  return [6];
 };
