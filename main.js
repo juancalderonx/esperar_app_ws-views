@@ -59,9 +59,21 @@ const onConnected = () => {
 
   chatRoomIds.forEach((chatRoomId) => {
     console.log("Vamos a suscribirnos al chat room con id: " + chatRoomId);
+
     stompClient.subscribe(
       `/topic/chat-message.${chatRoomId}`,
       onMessageReceived
+    );
+
+    console.log(
+      "Y ahora vamos a suscribirnos a las notificaciones del usuario."
+    );
+
+    const username = "jhondoe";
+
+    stompClient.subscribe(
+      `/user/${username}/queue/notifications`,
+      onNotificationReceived
     );
   });
 };
@@ -78,6 +90,16 @@ export const onMessageReceived = (payload) => {
 
   console.log("Mensaje decodificado:");
   console.log(message);
+};
+
+export const onNotificationReceived = (payload) => {
+  console.log("Notification received:");
+
+  const notificationBody = new TextDecoder().decode(payload.binaryBody);
+  const notification = JSON.parse(notificationBody);
+
+  console.log("Notificación decodificada:");
+  console.log(notification);
 };
 
 export const getChatRoomIdsForUser = () => {

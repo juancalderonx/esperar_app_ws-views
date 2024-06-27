@@ -17,7 +17,7 @@ function submitGeolocation() {
   console.log({ vehicleId, latitude, longitude });
 
   let stompClient = Stomp.over(function () {
-    return new SockJS(`http://localhost:8080/api/v1/ws`);
+    return new SockJS(`http://localhost:8080/api/v1/ws/geolocation`);
   });
 
   stompClient.connect(
@@ -45,7 +45,7 @@ function sendGeolocationMessage(stompClient, vehicleId, latitude, longitude) {
 
   try {
     stompClient.send("/app/addGeolocation", {}, JSON.stringify(geolocationDto));
-  } catch(error) {
+  } catch (error) {
     console.log("Error al enviar la geolocalización", error);
   }
 }
